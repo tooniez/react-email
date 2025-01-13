@@ -1,11 +1,10 @@
-import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
-import { As, Margin, withMargin } from "./utils";
-
-interface HeadingOwnProps {}
+import type { As } from "./utils/as";
+import type { Margin } from "./utils/spaces";
+import { withMargin } from "./utils/spaces";
 
 export type HeadingAs = As<"h1", "h2", "h3", "h4", "h5", "h6">;
-export type HeadingProps = HeadingAs & HeadingOwnProps & Margin;
+export type HeadingProps = HeadingAs & Margin;
 
 export const Heading = React.forwardRef<
   HTMLHeadingElement,
@@ -13,17 +12,16 @@ export const Heading = React.forwardRef<
 >(
   (
     { as: Tag = "h1", children, style, m, mx, my, mt, mr, mb, ml, ...props },
-    forwardedRef,
+    ref,
   ) => {
     return (
-      <Slot
+      <Tag
         {...props}
-        ref={forwardedRef}
-        data-id="react-email-heading"
+        ref={ref}
         style={{ ...withMargin({ m, mx, my, mt, mr, mb, ml }), ...style }}
       >
-        <Tag>{children}</Tag>
-      </Slot>
+        {children}
+      </Tag>
     );
   },
 );

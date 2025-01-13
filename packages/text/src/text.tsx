@@ -1,16 +1,12 @@
 import * as React from "react";
 
-type TextElement = React.ElementRef<"p">;
-type RootProps = React.ComponentPropsWithoutRef<"p">;
+export type TextProps = Readonly<React.ComponentPropsWithoutRef<"p">>;
 
-export interface TextProps extends RootProps {}
-
-export const Text = React.forwardRef<TextElement, Readonly<TextProps>>(
-  ({ style, ...props }, forwardedRef) => (
+export const Text = React.forwardRef<HTMLParagraphElement, TextProps>(
+  ({ style, ...props }, ref) => (
     <p
       {...props}
-      ref={forwardedRef}
-      data-id="react-email-text"
+      ref={ref}
       style={{
         fontSize: "14px",
         lineHeight: "24px",

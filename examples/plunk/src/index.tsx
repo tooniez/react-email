@@ -1,14 +1,19 @@
-import { render } from '@react-email/render';
-import Plunk from '@plunk/node';
-import * as React from 'react';
-import { Email } from './email';
+import { render } from "@react-email/components";
+import plunkImport from "@plunk/node";
+import { Email } from "./email";
 
-// eslint-disable-next-line turbo/no-undeclared-env-vars
-const plunk = new Plunk(process.env.PLUNK_API_KEY || '');
+const Plunk = (
+  plunkImport as unknown as {
+    default: typeof plunkImport;
+  }
+).default;
 
-const emailHtml = render(<Email url="https://example.com" />);
+// See https://github.com/useplunk/node/issues/2 for why Plunk.default
+const plunk = new Plunk(process.env.PLUNK_API_KEY || "");
 
-plunk.emails.send({
+const emailHtml = await render(<Email url="https://example.com" />);
+
+await plunk.emails.send({
   to: "hello@useplunk.com",
   subject: "Hello world",
   body: emailHtml,

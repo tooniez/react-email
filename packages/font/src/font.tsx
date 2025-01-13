@@ -5,7 +5,12 @@ type FallbackFont =
   | "Helvetica"
   | "Verdana"
   | "Georgia"
-  | "Times New Roman";
+  | "Times New Roman"
+  | "serif"
+  | "sans-serif"
+  | "monospace"
+  | "cursive"
+  | "fantasy";
 
 type FontFormat =
   | "woff"
@@ -69,5 +74,3 @@ export const Font: React.FC<Readonly<FontProps>> = ({
   `;
   return <style dangerouslySetInnerHTML={{ __html: style }} />;
 };
-
-Font.displayName = "Font";

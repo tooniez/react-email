@@ -1,4 +1,8 @@
 module.exports = {
-  root: true,
-  extends: ['custom'],
+  extends: ["custom/react-internal"],
+  rules: {
+    "import/no-default-export": "off",
+    "@typescript-eslint/consistent-type-imports": "off",
+    "tsdoc/syntax": "off"
+  },
 };
