@@ -1,23 +1,23 @@
-## Contributing
-Wanna help? Awesome! There are many ways you can contribute.
+Thank you for considering contributing to React Email.
 
-## Improving the docs
-Documentation is extremely important and takes a fair deal of time and effort to write and keep updated. Everything is written in Markdown to facilitate the process of contributing.
+We've created this guide to help you better understand how to contribute to the project, even if you've never contributed to an open source project before.
 
-## Building new components
-We’re open to expanding the catalog of components to cover as many use cases as possible. We suggest to open an issue for discussion first to make sure your idea is aligned with the project goals.
+## How to report bugs
 
-## Opening issues
-Open an issue to report bugs or to propose new features.
+To report a bug, please first read our guide on [opening issues](https://react.email/docs/contributing/opening-issues).
 
-**- Reporting bugs:**
-describe the bug as clearly as you can, including steps to reproduce, what happened and what you were expecting to happen. Also include browser version, OS and other related software’s (npm, Node.js, etc) versions when applicable.
+## How to contribute code
 
-**- Suggesting features:** explain the proposed feature, what it should do, why it is useful, how users should use it. Give us as much info as possible so it will be easier to discuss, access and implement the proposed feature. When you’re unsure about a certain aspect of the feature, feel free to leave it open for others to discuss and find an appropriate solution.
+To open a pull request, please first read our guide on [opening pull requests](https://react.email/docs/contributing/opening-pull-requests), which outlines our process for RFCs and pull requests.
 
-## Proposing pull requests
-Pull requests are very welcome. Note that if you are going to propose drastic changes, be sure to open an issue for discussion first, to make sure that your PR will be accepted before you spend effort coding it.
+### Codebase overview
+If you need help getting familiar with our codebase, we recommend reading our [Codebase overview guide](https://react.email/docs/contributing/codebase-overview).
 
-**- Forking the repository:** clone it locally and create a branch for your proposed bug fix or new feature. Avoid working directly on the main branch.
+### Development workflow guide
+We have also created a Development workflow guide to help you get familiar with the development workflow for React Email. It includes instructions for:
+1. [Setting up your development environment](https://react.email/docs/contributing/development-workflow/1-setup)
+2. [Running tests](https://react.email/docs/contributing/development-workflow/2-running-tests)
+3. [Linting](https://react.email/docs/contributing/development-workflow/3-linting)
+4. [Building](https://react.email/docs/contributing/development-workflow/4-building)
+5. [Writing documentation](https://react.email/docs/contributing/development-workflow/5-writing-docs)
 
-**- Making changes:** implement your bug fix or feature, write tests to cover it and make sure all tests are passing. Then commit your changes, push your bug fix/feature branch to the origin (your forked repo) and open a pull request to the upstream (the repository you originally forked)‘s main branch.

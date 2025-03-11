@@ -1,23 +1,15 @@
-import * as React from "react";
+import * as React from 'react';
 
-type ColumnElement = React.ElementRef<"td">;
-type RootProps = React.ComponentPropsWithoutRef<"td">;
+export type ColumnProps = Readonly<React.ComponentPropsWithoutRef<'td'>>;
 
-export interface ColumnProps extends RootProps {}
-
-export const Column = React.forwardRef<ColumnElement, Readonly<ColumnProps>>(
-  ({ children, style, ...props }, forwardedRef) => {
+export const Column = React.forwardRef<HTMLTableCellElement, ColumnProps>(
+  ({ children, style, ...props }, ref) => {
     return (
-      <td
-        {...props}
-        ref={forwardedRef}
-        data-id="__react-email-column"
-        style={style}
-      >
+      <td {...props} data-id="__react-email-column" ref={ref} style={style}>
         {children}
       </td>
     );
   },
 );
 
-Column.displayName = "Column";
+Column.displayName = 'Column';

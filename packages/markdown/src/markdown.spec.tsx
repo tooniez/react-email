@@ -1,29 +1,65 @@
-import { render } from "@react-email/render";
-import { Markdown } from "./markdown";
+import { render } from '@react-email/render';
+import { Markdown } from './markdown';
 
-describe("ReactEmailMarkdown component renders correctly", () => {
-  it("renders the markdown in the correct format for browsers", () => {
-    const actualOutput = render(
+describe('<Markdown> component renders correctly', () => {
+  it('renders the markdown in the correct format for browsers', async () => {
+    const actualOutput = await render(
       <Markdown>
-        {`
-# This is a ~~chair~~ Table
-       
-| Heading 1 | Heading 2 |
-| --------- | --------- |
-| Cell 1    | Cell 2    |
-| Cell 3    | Cell 4    |
-       `}
+        {`# Markdown Test Document
+
+This is a **test document** to check the capabilities of a Markdown parser.
+
+## Headings
+
+### Third-Level Heading
+
+#### Fourth-Level Heading
+
+##### Fifth-Level Heading
+
+###### Sixth-Level Heading
+
+## Text Formatting
+
+This is some **bold text** and this is some *italic text*. You can also use ~~strikethrough~~ and \`inline code\`.
+
+## Lists
+
+1. Ordered List Item 1
+2. Ordered List Item 2
+3. Ordered List Item 3
+
+- Unordered List Item 1
+- Unordered List Item 2
+- Unordered List Item 3
+
+## Links
+
+[Markdown Guide](https://www.markdownguide.org)
+
+## Images
+
+![Markdown Logo](https://markdown-here.com/img/icon256.png)
+
+## Blockquotes
+
+> This is a blockquote.
+> - Author
+
+## Code Blocks
+
+\`\`\`javascript
+function greet(name) {
+console.log(\`Hello, $\{name}!\`);
+}
+\`\`\``}
       </Markdown>,
     );
-    expect(actualOutput).toMatchInlineSnapshot(`
-      "<!DOCTYPE html PUBLIC \\"-//W3C//DTD XHTML 1.0 Transitional//EN\\" \\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\\"><div data-id=\\"react-email-markdown\\">
-      <h1 data-id=\\"react-email-heading\\" style=\\"font-weight:500;padding-top:20;font-size:2.5rem\\">This is a <del>chair</del> Table</h1>
-             <table><thead><tr><th align=\\"center\\">Heading 1</th><th align=\\"center\\">Heading 2</th></tr></thead><tbody><tr><td align=\\"center\\">Cell 1</td><td align=\\"center\\">Cell 2</td></tr><tr><td align=\\"center\\">Cell 3</td><td align=\\"center\\">Cell 4</td></tr></tbody></table>       </div>"
-    `);
+    expect(actualOutput).toMatchSnapshot();
   });
 
-  it("renders the headers in the correct format for browsers", () => {
-    const actualOutput = render(
+  it('renders the headers in the correct format for browsers', async () => {
+    const actualOutput = await render(
       <Markdown>
         {`
 # Heading 1!
@@ -35,38 +71,34 @@ describe("ReactEmailMarkdown component renders correctly", () => {
        `}
       </Markdown>,
     );
-    expect(actualOutput).toMatchInlineSnapshot(`
-      "<!DOCTYPE html PUBLIC \\"-//W3C//DTD XHTML 1.0 Transitional//EN\\" \\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\\"><div data-id=\\"react-email-markdown\\">
-      <h1 data-id=\\"react-email-heading\\" style=\\"font-weight:500;padding-top:20;font-size:2.5rem\\">Heading 1!</h1>
-      <h2 data-id=\\"react-email-heading\\" style=\\"font-weight:500;padding-top:20;font-size:2rem\\">Heading 2!</h2>
-      <h3 data-id=\\"react-email-heading\\" style=\\"font-weight:500;padding-top:20;font-size:1.75rem\\">Heading 3!</h3>
-      <h4 data-id=\\"react-email-heading\\" style=\\"font-weight:500;padding-top:20;font-size:1.5rem\\">Heading 4!</h4>
-      <h5 data-id=\\"react-email-heading\\" style=\\"font-weight:500;padding-top:20;font-size:1.25rem\\">Heading 5!</h5>
-      <h6 data-id=\\"react-email-heading\\" style=\\"font-weight:500;padding-top:20;font-size:1rem\\">Heading 6!</h6>
-             </div>"
-    `);
+    expect(actualOutput).toMatchSnapshot();
   });
 
-  it("renders text in the correct format for browsers", () => {
-    const actualOutput = render(
-      <Markdown>{`**This is sample bold text in markdown** and *this is italic text*`}</Markdown>,
+  it('renders text in the correct format for browsers', async () => {
+    const actualOutput = await render(
+      <Markdown
+        markdownCustomStyles={{
+          bold: {
+            font: '700 23px / 32px "Roobert PRO", system-ui, sans-serif',
+            background: 'url("path/to/image")',
+          },
+        }}
+      >
+        **This is sample bold text in markdown** and *this is italic text*
+      </Markdown>,
     );
-    expect(actualOutput).toMatchInlineSnapshot(
-      `"<!DOCTYPE html PUBLIC \\"-//W3C//DTD XHTML 1.0 Transitional//EN\\" \\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\\"><div data-id=\\"react-email-markdown\\"><strong data-id=\\"react-email-text\\" style=\\"font-weight:bold\\">This is sample bold text in markdown</strong> and <em data-id=\\"react-email-text\\" style=\\"font-style:italic\\">this is italic text</em></div>"`,
-    );
+    expect(actualOutput).toMatchSnapshot();
   });
 
-  it("renders links in the correct format for browsers", () => {
-    const actualOutput = render(
-      <Markdown>{`Link to [React-email](https://react.email)`}</Markdown>,
+  it('renders links in the correct format for browsers', async () => {
+    const actualOutput = await render(
+      <Markdown>Link to [React-email](https://react.email)</Markdown>,
     );
-    expect(actualOutput).toMatchInlineSnapshot(
-      `"<!DOCTYPE html PUBLIC \\"-//W3C//DTD XHTML 1.0 Transitional//EN\\" \\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\\"><div data-id=\\"react-email-markdown\\"><p data-id=\\"react-email-text\\">Link to <a href=\\"https://react.email\\" style=\\"color:#007bff;text-decoration:underline;background-color:transparent\\" data-id=\\"react-email-link\\" target=\\"_blank\\">React-email</a></p></div>"`,
-    );
+    expect(actualOutput).toMatchSnapshot();
   });
 
-  it("renders lists in the correct format for browsers", () => {
-    const actualOutput = render(
+  it('renders lists in the correct format for browsers', async () => {
+    const actualOutput = await render(
       <Markdown>
         {`
 # Below is a list 
@@ -77,13 +109,6 @@ describe("ReactEmailMarkdown component renders correctly", () => {
        `}
       </Markdown>,
     );
-    expect(actualOutput).toMatchInlineSnapshot(`
-      "<!DOCTYPE html PUBLIC \\"-//W3C//DTD XHTML 1.0 Transitional//EN\\" \\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\\"><div data-id=\\"react-email-markdown\\">
-      <h1 data-id=\\"react-email-heading\\" style=\\"font-weight:500;padding-top:20;font-size:2.5rem\\">Below is a list </h1>
-      <ul><li>Item One</li>
-      <li>Item Two</li>
-      <li>Item Three</li></ul>
-             </div>"
-    `);
+    expect(actualOutput).toMatchSnapshot();
   });
 });

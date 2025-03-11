@@ -1,173 +1,117 @@
-import * as React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
-import htmlParser, {
-  attributesToProps,
-  domToReact,
-  Element,
-} from "html-react-parser";
-import { tailwindToCSS, TailwindConfig } from "tw-to-css";
+import { Root } from 'postcss';
+import * as React from 'react';
+import type { Config as TailwindOriginalConfig } from 'tailwindcss';
+import { minifyCss } from './utils/css/minify-css';
+import { removeRuleDuplicatesFromRoot } from './utils/css/remove-rule-duplicates-from-root';
+import { mapReactTree } from './utils/react/map-react-tree';
+import { cloneElementWithInlinedStyles } from './utils/tailwindcss/clone-element-with-inlined-styles';
+import { setupTailwind } from './utils/tailwindcss/setup-tailwind';
+
+export type TailwindConfig = Pick<
+  TailwindOriginalConfig,
+  | 'important'
+  | 'prefix'
+  | 'separator'
+  | 'safelist'
+  | 'blocklist'
+  | 'presets'
+  | 'future'
+  | 'experimental'
+  | 'darkMode'
+  | 'theme'
+  | 'corePlugins'
+  | 'plugins'
+>;
 
 export interface TailwindProps {
   children: React.ReactNode;
   config?: TailwindConfig;
 }
 
+export interface EmailElementProps {
+  children?: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
 export const Tailwind: React.FC<TailwindProps> = ({ children, config }) => {
-  const { twi } = tailwindToCSS({
-    config,
+  const tailwind = setupTailwind(config ?? {});
+
+  const nonInlineStylesRootToApply = new Root();
+  let mediaQueryClassesForAllElement: string[] = [];
+
+  let hasNonInlineStylesToApply = false as boolean;
+
+  let mappedChildren: React.ReactNode = mapReactTree(children, (node) => {
+    if (React.isValidElement<EmailElementProps>(node)) {
+      const {
+        elementWithInlinedStyles,
+        nonInlinableClasses,
+        nonInlineStyleNodes,
+      } = cloneElementWithInlinedStyles(node, tailwind);
+      mediaQueryClassesForAllElement =
+        mediaQueryClassesForAllElement.concat(nonInlinableClasses);
+      nonInlineStylesRootToApply.append(nonInlineStyleNodes);
+
+      if (nonInlinableClasses.length > 0 && !hasNonInlineStylesToApply) {
+        hasNonInlineStylesToApply = true;
+      }
+
+      return elementWithInlinedStyles;
+    }
+
+    return node;
   });
 
-  const newChildren = React.Children.toArray(children);
+  removeRuleDuplicatesFromRoot(nonInlineStylesRootToApply);
 
-  const fullHTML = renderToStaticMarkup(<>{newChildren}</>);
+  if (hasNonInlineStylesToApply) {
+    let hasAppliedNonInlineStyles = false as boolean;
 
-  const tailwindCss = twi(fullHTML, {
-    merge: false,
-    ignoreMediaQueries: false,
-  });
-  const css = cleanCss(tailwindCss);
-  const cssMap = makeCssMap(css);
+    mappedChildren = mapReactTree(mappedChildren, (node) => {
+      if (hasAppliedNonInlineStyles) {
+        return node;
+      }
 
-  const headStyle = getMediaQueryCss(css);
+      if (React.isValidElement<EmailElementProps>(node)) {
+        if (node.type === 'head') {
+          hasAppliedNonInlineStyles = true;
 
-  const hasResponsiveStyles = /@media[^{]+\{(?<content>[\s\S]+?)\}\s*\}/gm.test(
-    headStyle,
-  );
-  const hasHTML = /<html[^>]*>/gm.test(fullHTML);
-  const hasHead = /<head[^>]*>/gm.test(fullHTML);
+          /*                   only minify here since it is the only place that is going to be in the DOM */
+          const styleElement = (
+            <style>
+              {minifyCss(nonInlineStylesRootToApply.toString().trim())}
+            </style>
+          );
 
-  if (hasResponsiveStyles && (!hasHTML || !hasHead)) {
-    throw new Error(
-      "Tailwind: To use responsive styles you must have a <html> and <head> element in your template.",
-    );
+          return React.cloneElement(
+            node,
+            node.props,
+            node.props.children,
+            styleElement,
+          );
+        }
+      }
+
+      return node;
+    });
+
+    if (!hasAppliedNonInlineStyles) {
+      throw new Error(
+        `You are trying to use the following Tailwind classes that cannot be inlined: ${mediaQueryClassesForAllElement.join(
+          ' ',
+        )}.
+For the media queries to work properly on rendering, they need to be added into a <style> tag inside of a <head> tag,
+the Tailwind component tried finding a <head> element but just wasn't able to find it.
+
+Make sure that you have a <head> element at some point inside of the <Tailwind> component at any depth. 
+This can also be our <Head> component.
+
+If you do already have a <head> element at some depth, 
+please file a bug https://github.com/resend/react-email/issues/new?assignees=&labels=Type%3A+Bug&projects=&template=1.bug_report.yml.`,
+      );
+    }
   }
 
-  const reactHTML = React.Children.map(newChildren, (child) => {
-    if (!React.isValidElement(child)) return child;
-
-    const html = renderToStaticMarkup(child);
-
-    const parsedHTML = htmlParser(html, {
-      replace: (domNode) => {
-        if (domNode instanceof Element) {
-          if (hasResponsiveStyles && hasHead && domNode.name === "head") {
-            let newDomNode: JSX.Element | null = null;
-
-            if (domNode.children) {
-              const props = attributesToProps(domNode.attribs);
-
-              newDomNode = (
-                <head {...props}>
-                  {domToReact(domNode.children)}
-                  <style>{headStyle}</style>
-                </head>
-              );
-            }
-
-            return newDomNode;
-          }
-
-          if (domNode.attribs?.class) {
-            const cleanRegex = /[:#\!\-[\]\/\.%]+/g;
-            const cleanTailwindClasses = domNode.attribs.class
-              // replace all non-alphanumeric characters with underscores
-              .replace(cleanRegex, "_");
-
-            const currentStyles = domNode.attribs.style
-              ? `${domNode.attribs.style};`
-              : "";
-            const tailwindStyles = cleanTailwindClasses
-              .split(" ")
-              .map((className) => {
-                return cssMap[`.${className}`];
-              })
-              .join(";");
-            domNode.attribs.style = `${currentStyles} ${tailwindStyles}`;
-
-            domNode.attribs.class = domNode.attribs.class
-              // remove all non-responsive classes (ex: m-2 md:m-4 > md:m-4)
-              .split(" ")
-              .filter((className) => className.search(/^.{2}:/) !== -1)
-              .join(" ")
-              // replace all non-alphanumeric characters with underscores
-              .replace(cleanRegex, "_");
-
-            if (domNode.attribs.class === "") delete domNode.attribs.class;
-          }
-        }
-      },
-    });
-
-    return parsedHTML;
-  });
-
-  return <>{reactHTML}</>;
+  return mappedChildren;
 };
-
-Tailwind.displayName = "Tailwind";
-
-/**
- * Clean css selectors to replace all non-alphanumeric characters with underscores
- */
-function cleanCss(css: string) {
-  let newCss = css
-    .replace(/\\/g, "")
-    // find all css selectors and look ahead for opening and closing curly braces
-    .replace(/[.\!\#\w\d\\:\-\[\]\/\.%\(\))]+(?=\s*?{[^{]*?\})\s*?{/g, (m) => {
-      return m.replace(/(?<=.)[:#\!\-[\\\]\/\.%]+/g, "_");
-    })
-    .replace(/font-family(?<value>[^;\r\n]+)/g, (m, value) => {
-      return `font-family${value.replace(/['"]+/g, "")}`;
-    });
-  return newCss;
-}
-
-/**
- * Get media query css to put in head
- */
-function getMediaQueryCss(css: string) {
-  const mediaQueryRegex = /@media[^{]+\{(?<content>[\s\S]+?)\}\s*\}/gm;
-
-  return (
-    css
-      .replace(mediaQueryRegex, (m) => {
-        return m.replace(
-          /([^{]+\{)([\s\S]+?)(\}\s*\})/gm,
-          (_, start, content, end) => {
-            const newContent = (content as string).replace(
-              /(?:[\s\r\n]*)?(?<prop>[\w-]+)\s*:\s*(?<value>[^};\r\n]+)/gm,
-              (_, prop, value) => {
-                return `${prop}: ${value} !important;`;
-              },
-            );
-            return `${start}${newContent}${end}`;
-          },
-        );
-      })
-      // only return media queries
-      .match(/@media\s*([^{]+)\{([^{}]*\{[^{}]*\})*[^{}]*\}/g)
-      ?.join("") ?? ""
-  );
-}
-
-/**
- * Make a map of all class names and their css styles
- */
-function makeCssMap(css: string) {
-  const cssNoMedia = css.replace(
-    /@media[^{]+\{(?<content>[\s\S]+?)\}\s*\}/gm,
-    "",
-  );
-
-  const cssMap = cssNoMedia.split("}").reduce(
-    (acc, cur) => {
-      const [key, value] = cur.split("{");
-      if (key && value) {
-        acc[key] = value;
-      }
-      return acc;
-    },
-    {} as Record<string, string>,
-  );
-  return cssMap;
-}

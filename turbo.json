@@ -1,16 +1,49 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "pipeline": {
+  "globalDependencies": ["**/.env.*local"],
+  "globalEnv": [
+    "SUPABASE_URL",
+    "SUPABASE_ANON_KEY",
+    "SUPABASE_TABLE_NAME",
+    "SPAM_ASSASSIN_HOST",
+    "SPAM_ASSASSIN_PORT"
+  ],
+  "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
-    },
-    "dev": {
-      "dependsOn": ["^dev"],
       "outputs": ["dist/**"]
     },
-    "test": {},
+    "web#build": {
+      "dependsOn": ["^build"],
+      "env": [
+        "RESEND_API_KEY",
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
+    "demo#build": {
+      "dependsOn": ["^build"],
+      "outputs": [".react-email/**", "!.react-email/.next/cache/**"]
+    },
+    "react-email#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
     "lint": {},
-    "format": {}
+    "//#format": {},
+    "//#format:check": {},
+    "test": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
+    "test:watch": {
+      "cache": false
+    },
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    }
   }
 }

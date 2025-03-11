@@ -1,16 +1,16 @@
-import type { FC } from "react";
 import {
   Body,
   Container,
   Head,
-  Link,
-  Preview,
   Heading,
   Html,
-  Section,
   Img,
+  Link,
+  Preview,
+  Section,
   Text,
-} from "@react-email/components";
+} from '@react-email/components';
+import type { FC } from 'react';
 
 interface EmailProps {
   url: string;
@@ -44,13 +44,11 @@ export const Email: FC<Readonly<EmailProps>> = ({
           <Heading>
             Join <strong>{teamName}</strong> on <strong>Scaleway</strong>
           </Heading>
-          <Text >
-            Hello {username},
-          </Text>
-          <Text >
+          <Text>Hello {username},</Text>
+          <Text>
             <strong>{invitedByUsername}</strong> (
             <Link href={`mailto:${invitedByEmail}`}>{invitedByEmail}</Link>) has
-            invited you to the <strong>{teamName}</strong> team on{" "}
+            invited you to the <strong>{teamName}</strong> team on{' '}
             <strong>Scaleway</strong>.
           </Text>
         </Container>

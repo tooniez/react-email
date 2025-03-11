@@ -1,24 +1,22 @@
-import * as React from "react";
+import * as React from 'react';
 
-type LinkElement = React.ElementRef<"a">;
-type RootProps = React.ComponentPropsWithoutRef<"a">;
+export type LinkProps = Readonly<React.ComponentPropsWithoutRef<'a'>>;
 
-export interface LinkProps extends RootProps {}
-
-export const Link = React.forwardRef<LinkElement, Readonly<LinkProps>>(
-  ({ target = "_blank", style, ...props }, forwardedRef) => (
+export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
+  ({ target = '_blank', style, ...props }, ref) => (
     <a
       {...props}
-      ref={forwardedRef}
-      data-id="react-email-link"
-      target={target}
+      ref={ref}
       style={{
-        color: "#067df7",
-        textDecoration: "none",
+        color: '#067df7',
+        textDecorationLine: 'none',
         ...style,
       }}
-    />
+      target={target}
+    >
+      {props.children}
+    </a>
   ),
 );
 
-Link.displayName = "Link";
+Link.displayName = 'Link';

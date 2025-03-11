@@ -1,24 +1,20 @@
-import * as React from "react";
+import * as React from 'react';
 
-type HrElement = React.ElementRef<"hr">;
-type RootProps = React.ComponentPropsWithoutRef<"hr">;
+export type HrProps = Readonly<React.ComponentPropsWithoutRef<'hr'>>;
 
-export interface HrProps extends RootProps {}
-
-export const Hr = React.forwardRef<HrElement, Readonly<HrProps>>(
-  ({ style, ...props }, forwardedRef) => (
+export const Hr = React.forwardRef<HTMLHRElement, HrProps>(
+  ({ style, ...props }, ref) => (
     <hr
       {...props}
-      ref={forwardedRef}
-      data-id="react-email-hr"
+      ref={ref}
       style={{
-        width: "100%",
-        border: "none",
-        borderTop: "1px solid #eaeaea",
+        width: '100%',
+        border: 'none',
+        borderTop: '1px solid #eaeaea',
         ...style,
       }}
     />
   ),
 );
 
-Hr.displayName = "Hr";
+Hr.displayName = 'Hr';

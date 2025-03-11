@@ -1,39 +1,80 @@
-import * as React from "react";
-import { pxToPt } from "./utils";
+import * as React from 'react';
+import { parsePadding } from './utils/parse-padding';
+import { pxToPt } from './utils/px-to-pt';
 
-type ButtonElement = React.ElementRef<"a">;
-type RootProps = React.ComponentPropsWithoutRef<"a">;
+export type ButtonProps = Readonly<React.ComponentPropsWithoutRef<'a'>>;
 
-export interface ButtonProps extends RootProps {
-  pX?: number;
-  pY?: number;
+const maxFontWidth = 5;
+
+/**
+ * Computes a msoFontWidth \<= 5 and a count of space characters that,
+ * when applied, end up being as close to `expectedWidth` as possible.
+ */
+function computeFontWidthAndSpaceCount(expectedWidth: number) {
+  if (expectedWidth === 0) return [0, 0];
+
+  let smallestSpaceCount = 0;
+
+  const computeRequiredFontWidth = () => {
+    if (smallestSpaceCount > 0) {
+      return expectedWidth / smallestSpaceCount / 2;
+    }
+
+    return Number.POSITIVE_INFINITY;
+  };
+
+  while (computeRequiredFontWidth() > maxFontWidth) {
+    smallestSpaceCount++;
+  }
+
+  return [computeRequiredFontWidth(), smallestSpaceCount];
 }
 
-export const Button = React.forwardRef<ButtonElement, Readonly<ButtonProps>>(
-  (
-    { children, style, pX = 0, pY = 0, target = "_blank", ...props },
-    forwardedRef,
-  ) => {
-    const y = (pY || 0) * 2;
-    const textRaise = pxToPt(y.toString());
+export const Button = React.forwardRef<HTMLAnchorElement, ButtonProps>(
+  ({ children, style, target = '_blank', ...props }, ref) => {
+    const { pt, pr, pb, pl } = parsePadding({
+      padding: style?.padding,
+      paddingLeft: style?.paddingLeft ?? style?.paddingInline,
+      paddingRight: style?.paddingRight ?? style?.paddingInline,
+      paddingTop: style?.paddingTop ?? style?.paddingBlock,
+      paddingBottom: style?.paddingBottom ?? style?.paddingBlock,
+    });
+
+    const y = pt + pb;
+    const textRaise = pxToPt(y);
+
+    const [plFontWidth, plSpaceCount] = computeFontWidthAndSpaceCount(pl);
+    const [prFontWidth, prSpaceCount] = computeFontWidthAndSpaceCount(pr);
 
     return (
       <a
         {...props}
-        ref={forwardedRef}
-        data-id="react-email-button"
+        ref={ref}
+        style={buttonStyle({ ...style, pt, pr, pb, pl })}
         target={target}
-        style={buttonStyle({ ...style, pX, pY })}
       >
         <span
           dangerouslySetInnerHTML={{
-            __html: `<!--[if mso]><i style="letter-spacing: ${pX}px;mso-font-width:-100%;mso-text-raise:${textRaise}" hidden>&nbsp;</i><![endif]-->`,
+            // The `&#8202;` is as close to `1px` of an empty character as we can get, then, we use the `mso-font-width`
+            // to scale it according to what padding the developer wants. `mso-font-width` also does not allow for percentages
+            // >= 500% so we need to add extra spaces accordingly.
+            //
+            // See https://github.com/resend/react-email/issues/1512 for why we do not use letter-spacing instead.
+            __html: `<!--[if mso]><i style="mso-font-width:${
+              plFontWidth * 100
+            }%;mso-text-raise:${textRaise}" hidden>${'&#8202;'.repeat(
+              plSpaceCount,
+            )}</i><![endif]-->`,
           }}
         />
-        <span style={buttonTextStyle(pY)}>{children}</span>
+        <span style={buttonTextStyle(pb)}>{children}</span>
         <span
           dangerouslySetInnerHTML={{
-            __html: `<!--[if mso]><i style="letter-spacing: ${pX}px;mso-font-width:-100%" hidden>&nbsp;</i><![endif]-->`,
+            __html: `<!--[if mso]><i style="mso-font-width:${
+              prFontWidth * 100
+            }%" hidden>${'&#8202;'.repeat(
+              prSpaceCount,
+            )}&#8203;</i><![endif]-->`,
           }}
         />
       </a>
@@ -41,31 +82,35 @@ export const Button = React.forwardRef<ButtonElement, Readonly<ButtonProps>>(
   },
 );
 
-Button.displayName = "Button";
+Button.displayName = 'Button';
 
 const buttonStyle = (
-  style?: React.CSSProperties & { pY: number; pX: number },
+  style?: React.CSSProperties & {
+    pt: number;
+    pr: number;
+    pb: number;
+    pl: number;
+  },
 ) => {
-  const { pY, pX, ...rest } = style || {};
+  const { pt, pr, pb, pl, ...rest } = style || {};
 
   return {
+    lineHeight: '100%',
+    textDecoration: 'none',
+    display: 'inline-block',
+    maxWidth: '100%',
+    msoPaddingAlt: '0px',
     ...rest,
-    lineHeight: "100%",
-    textDecoration: "none",
-    display: "inline-block",
-    maxWidth: "100%",
-    padding: `${pY}px ${pX}px`,
+    padding: `${pt}px ${pr}px ${pb}px ${pl}px`,
   };
 };
 
-const buttonTextStyle = (pY?: number) => {
-  const paddingY = pY || 0;
-
+const buttonTextStyle = (pb?: number) => {
   return {
-    maxWidth: "100%",
-    display: "inline-block",
-    lineHeight: "120%",
-    msoPaddingAlt: "0px",
-    msoTextRaise: pxToPt(paddingY.toString()),
+    maxWidth: '100%',
+    display: 'inline-block',
+    lineHeight: '120%',
+    msoPaddingAlt: '0px',
+    msoTextRaise: pxToPt(pb || 0),
   };
 };

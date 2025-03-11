@@ -1,25 +1,47 @@
-import { Button } from "./index";
-import { render } from "@react-email/render";
+import { render } from '@react-email/render';
+import { Button } from './index';
 
-describe("render", () => {
-  beforeEach(() => {
-    jest.restoreAllMocks();
-    jest.resetModules();
+describe('<Button> component', () => {
+  it('renders children correctly', async () => {
+    const testMessage = 'Test message';
+    const html = await render(<Button>{testMessage}</Button>);
+    expect(html).toContain(testMessage);
   });
 
-  it("renders the <Button> component", () => {
-    const actualOutput = render(
-      <Button pX={20} pY={12} href="https://example.com" />,
+  it('passes style and other props correctly', async () => {
+    const style = { backgroundColor: 'red' };
+    const html = await render(
+      <Button data-testid="button-test" style={style}>
+        Test
+      </Button>,
     );
-    expect(actualOutput).toMatchInlineSnapshot(
-      `"<!DOCTYPE html PUBLIC \\"-//W3C//DTD XHTML 1.0 Transitional//EN\\" \\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\\"><a href=\\"https://example.com\\" data-id=\\"react-email-button\\" target=\\"_blank\\" style=\\"line-height:100%;text-decoration:none;display:inline-block;max-width:100%;padding:12px 20px\\"><span><!--[if mso]><i style=\\"letter-spacing: 20px;mso-font-width:-100%;mso-text-raise:18\\" hidden>&nbsp;</i><![endif]--></span><span style=\\"max-width:100%;display:inline-block;line-height:120%;mso-padding-alt:0px;mso-text-raise:9px\\"></span><span><!--[if mso]><i style=\\"letter-spacing: 20px;mso-font-width:-100%\\" hidden>&nbsp;</i><![endif]--></span></a>"`,
-    );
+    expect(html).toContain('background-color:red');
+    expect(html).toContain('data-testid="button-test"');
   });
 
-  it("renders the <Button> component with no padding value", () => {
-    const actualOutput = render(<Button href="https://example.com" />);
-    expect(actualOutput).toMatchInlineSnapshot(
-      `"<!DOCTYPE html PUBLIC \\"-//W3C//DTD XHTML 1.0 Transitional//EN\\" \\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\\"><a href=\\"https://example.com\\" data-id=\\"react-email-button\\" target=\\"_blank\\" style=\\"line-height:100%;text-decoration:none;display:inline-block;max-width:100%;padding:0px 0px\\"><span><!--[if mso]><i style=\\"letter-spacing: 0px;mso-font-width:-100%;mso-text-raise:0\\" hidden>&nbsp;</i><![endif]--></span><span style=\\"max-width:100%;display:inline-block;line-height:120%;mso-padding-alt:0px;mso-text-raise:0\\"></span><span><!--[if mso]><i style=\\"letter-spacing: 0px;mso-font-width:-100%\\" hidden>&nbsp;</i><![endif]--></span></a>"`,
+  it('renders correctly  with padding values from style prop', async () => {
+    const actualOutput = await render(
+      <Button href="https://example.com" style={{ padding: '12px 20px' }} />,
     );
+    expect(actualOutput).toMatchSnapshot();
+  });
+
+  it('renders the <Button> component with no padding value', async () => {
+    const actualOutput = await render(<Button href="https://example.com" />);
+    expect(actualOutput).toMatchSnapshot();
+  });
+
+  it('should allow users to overwrite style props', async () => {
+    const actualOutput = await render(
+      <Button
+        style={{
+          lineHeight: '150%',
+          display: 'block',
+          textDecoration: 'underline red',
+          maxWidth: '50%',
+        }}
+      />,
+    );
+    expect(actualOutput).toMatchSnapshot();
   });
 });

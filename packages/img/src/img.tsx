@@ -1,29 +1,25 @@
-import * as React from "react";
+import * as React from 'react';
 
-type ImgElement = React.ElementRef<"img">;
-type RootProps = React.ComponentPropsWithoutRef<"img">;
+export type ImgProps = Readonly<React.ComponentPropsWithoutRef<'img'>>;
 
-export interface ImgProps extends RootProps {}
-
-export const Img = React.forwardRef<ImgElement, Readonly<ImgProps>>(
-  ({ alt, src, width, height, style, ...props }, forwardedRef) => (
+export const Img = React.forwardRef<HTMLImageElement, ImgProps>(
+  ({ alt, src, width, height, style, ...props }, ref) => (
     <img
       {...props}
-      ref={forwardedRef}
-      data-id="react-email-img"
       alt={alt}
-      src={src}
-      width={width}
       height={height}
+      ref={ref}
+      src={src}
       style={{
-        display: "block",
-        outline: "none",
-        border: "none",
-        textDecoration: "none",
+        display: 'block',
+        outline: 'none',
+        border: 'none',
+        textDecoration: 'none',
         ...style,
       }}
+      width={width}
     />
   ),
 );
 
-Img.displayName = "Img";
+Img.displayName = 'Img';

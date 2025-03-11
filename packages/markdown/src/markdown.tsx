@@ -1,35 +1,33 @@
-import { StylesType, parseMarkdownToReactEmailJSX } from "md-to-react-email";
-import * as React from "react";
+import type { StylesType } from 'md-to-react-email';
+import { parseMarkdownToJSX } from 'md-to-react-email';
+import * as React from 'react';
 
-type MarkdownElement = React.ElementRef<"div">;
-
-export interface MarkdownProps {
+export type MarkdownProps = Readonly<{
   children: string;
   markdownCustomStyles?: StylesType;
   markdownContainerStyles?: React.CSSProperties;
-}
+}>;
 
-export const Markdown = React.forwardRef<MarkdownElement, MarkdownProps>(
+export const Markdown = React.forwardRef<HTMLDivElement, MarkdownProps>(
   (
     { children, markdownContainerStyles, markdownCustomStyles, ...props },
-    forwardedRef,
+    ref,
   ) => {
-    const parsedMarkdown = parseMarkdownToReactEmailJSX({
+    const parsedMarkdown = parseMarkdownToJSX({
       markdown: children,
       customStyles: markdownCustomStyles,
-      withDataAttr: true,
     });
 
     return (
       <div
         {...props}
-        ref={forwardedRef}
-        data-id="react-email-markdown"
-        style={markdownContainerStyles}
         dangerouslySetInnerHTML={{ __html: parsedMarkdown }}
+        data-id="react-email-markdown"
+        ref={ref}
+        style={markdownContainerStyles}
       />
     );
   },
 );
 
-Markdown.displayName = "Markdown";
+Markdown.displayName = 'Markdown';
